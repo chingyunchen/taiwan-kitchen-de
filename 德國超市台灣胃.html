@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>德國超市 × 台灣胃|拖食材,變台菜</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EFE6D4;        /* 牛皮紙攤位 */
+    --ink:#27241D;
+    --bag-red:#C9342B;      /* 茄芷袋紅 */
+    --bag-blue:#1F4F8F;     /* 茄芷袋藍 */
+    --bag-green:#2E7D4F;    /* 茄芷袋綠 */
+    --tag:#FFFDF6;          /* 價格標籤紙 */
+    --tag-edge:#D8CBB2;
+    --gold:#E0A52E;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    font-family:'Noto Sans TC',-apple-system,'PingFang TC','Microsoft JhengHei',sans-serif;
+    background:
+      repeating-linear-gradient(90deg, rgba(0,0,0,.022) 0 2px, transparent 2px 26px),
+      var(--paper);
+    color:var(--ink);
+    min-height:100%;
+    overflow-x:hidden;
+  }
+  .frame{max-width:1080px;margin:0 auto;padding:0 16px 56px;}
+
+  /* ── 頂部招牌 ── */
+  header{padding:26px 0 8px;text-align:center;position:relative;}
+  .awning{
+    height:14px;border-radius:0 0 8px 8px;margin:0 -16px 18px;
+    background:repeating-linear-gradient(90deg,
+      var(--bag-red) 0 36px, var(--tag) 36px 72px,
+      var(--bag-blue) 72px 108px, var(--tag) 108px 144px,
+      var(--bag-green) 144px 180px, var(--tag) 180px 216px);
+    box-shadow:0 3px 0 rgba(0,0,0,.12);
+  }
+  .eyebrow{
+    display:inline-block;font-size:12px;letter-spacing:.32em;font-weight:700;
+    color:var(--bag-blue);text-transform:uppercase;margin-bottom:6px;
+  }
+  h1{
+    font-family:'Noto Serif TC',serif;font-weight:900;
+    font-size:clamp(30px,5.4vw,52px);line-height:1.15;letter-spacing:.04em;
+  }
+  h1 .x{color:var(--bag-red);font-size:.7em;vertical-align:middle;margin:0 .15em;}
+  .sub{margin-top:10px;font-size:14.5px;color:#5d5747;line-height:1.7;}
+  .sub b{color:var(--bag-red);}
+
+  /* ── 茄芷袋菜籃 ── */
+  .basket-zone{
+    position:relative;margin:26px auto 8px;max-width:560px;
+    transition:transform .18s ease;
+  }
+  .basket-zone.hot{transform:scale(1.03);}
+  .basket-svg{display:block;width:100%;height:auto;filter:drop-shadow(0 10px 14px rgba(0,0,0,.16));}
+  .basket-hint{
+    position:absolute;left:50%;top:54%;transform:translate(-50%,-50%);
+    width:78%;text-align:center;color:#fffdf6;
+    font-size:14px;line-height:1.6;pointer-events:none;
+    text-shadow:0 1px 2px rgba(0,0,0,.35);opacity:.92;
+  }
+  .basket-hint .big{font-family:'Noto Serif TC',serif;font-weight:900;font-size:19px;display:block;margin-bottom:2px;}
+  .chips{
+    position:absolute;left:50%;top:55%;transform:translate(-50%,-50%);
+    width:80%;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;
+    pointer-events:auto;
+  }
+  .chip{
+    background:var(--tag);border:1.5px solid var(--ink);border-radius:999px;
+    font-size:13.5px;font-weight:700;padding:4px 10px;cursor:pointer;
+    display:flex;align-items:center;gap:5px;
+    box-shadow:0 2px 0 rgba(0,0,0,.25);
+    animation:pop .22s ease;
+  }
+  .chip:hover{background:#ffeede;}
+  .chip .x{color:var(--bag-red);font-weight:900;}
+  @keyframes pop{from{transform:scale(.5);opacity:0;}to{transform:scale(1);opacity:1;}}
+  .basket-actions{text-align:center;margin-top:6px;min-height:30px;}
+  .clear-btn{
+    background:none;border:1.5px dashed #9a8f76;border-radius:999px;
+    font-family:inherit;font-size:13px;font-weight:700;
+    color:#6b6351;padding:5px 16px;cursor:pointer;display:none;
+  }
+  .clear-btn:hover{border-color:var(--bag-red);color:var(--bag-red);}
+  .clear-btn.show{display:inline-block;}
+
+  /* ── 食譜結果 ── */
+  .results{margin:26px 0 6px;}
+  .results-head{
+    display:flex;align-items:center;gap:12px;margin-bottom:14px;
+  }
+  .results-head::before,.results-head::after{
+    content:"";flex:1;height:2px;
+    background:repeating-linear-gradient(90deg,var(--ink) 0 8px,transparent 8px 16px);
+    opacity:.35;
+  }
+  .results-head span{
+    font-family:'Noto Serif TC',serif;font-weight:900;font-size:20px;letter-spacing:.18em;
+  }
+  .recipes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px;}
+  .recipe{
+    background:var(--tag);border:2px solid var(--ink);border-radius:14px;
+    padding:18px 18px 16px;position:relative;overflow:hidden;
+    box-shadow:5px 5px 0 rgba(39,36,29,.85);
+    animation:rise .35s ease;
+  }
+  @keyframes rise{from{transform:translateY(14px);opacity:0;}to{transform:none;opacity:1;}}
+  .recipe::before{
+    content:"";position:absolute;inset:0 0 auto 0;height:8px;
+    background:repeating-linear-gradient(90deg,
+      var(--bag-red) 0 22px, var(--bag-blue) 22px 44px, var(--bag-green) 44px 66px);
+  }
+  .recipe h3{
+    font-family:'Noto Serif TC',serif;font-weight:900;font-size:23px;
+    margin:8px 0 2px;display:flex;align-items:center;gap:8px;
+  }
+  .recipe .de-name{font-size:12.5px;color:#857a62;letter-spacing:.04em;margin-bottom:10px;}
+  .recipe .uses{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+  .recipe .uses i{
+    font-style:normal;font-size:12px;font-weight:700;
+    background:#f1e7d2;border:1px solid var(--tag-edge);border-radius:999px;padding:2px 9px;
+  }
+  .tip{
+    background:#FFF3DC;border-left:4px solid var(--gold);
+    font-size:13.5px;line-height:1.7;padding:8px 11px;border-radius:0 8px 8px 0;
+    margin-bottom:10px;
+  }
+  .tip b{color:#9a6a00;}
+  .steps{font-size:14px;line-height:1.85;color:#3c382e;}
+  .steps li{margin-left:1.3em;margin-bottom:2px;}
+
+  /* 差一味 */
+  .almost-wrap{margin-top:16px;}
+  .almost-title{font-size:13px;font-weight:700;color:#857a62;letter-spacing:.12em;margin-bottom:8px;text-align:center;}
+  .almost-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;}
+  .almost{
+    background:rgba(255,253,246,.7);
+    border:1.5px dashed #b3a888;border-radius:10px;
+    font-size:13px;padding:7px 12px;color:#6b6351;
+  }
+  .almost b{color:var(--bag-red);}
+  .empty-note{
+    text-align:center;
+    color:#8d8270;font-size:14px;line-height:1.8;padding:8px 0 2px;
+  }
+
+  /* ── 攤位:食材區 ── */
+  .stall{margin-top:34px;position:relative;}
+  .stall-head{
+    display:flex;align-items:baseline;justify-content:center;gap:10px;margin-bottom:4px;
+  }
+  .stall-head h2{
+    font-family:'Noto Serif TC',serif;font-weight:900;font-size:22px;letter-spacing:.14em;
+  }
+  .stall-head small{font-size:12.5px;color:#857a62;letter-spacing:.06em;}
+  .write-bar{
+    display:flex;gap:8px;justify-content:center;align-items:center;
+    flex-wrap:wrap;margin-top:14px;
+  }
+  .write-bar input{
+    font-family:inherit;font-size:14.5px;font-weight:500;
+    background:#FFF9E8;border:1.8px solid var(--ink);border-radius:10px;
+    padding:9px 14px;width:min(320px,70vw);color:var(--ink);
+    box-shadow:3px 3px 0 rgba(39,36,29,.5);outline:none;
+  }
+  .write-bar input:focus{border-color:var(--bag-blue);box-shadow:3px 3px 0 var(--bag-blue);}
+  .write-bar input::placeholder{color:#a89a7c;}
+  .write-bar button{
+    font-family:inherit;font-size:14.5px;font-weight:700;cursor:pointer;
+    background:var(--bag-red);color:#fffdf6;border:1.8px solid var(--ink);
+    border-radius:10px;padding:9px 18px;
+    box-shadow:3px 3px 0 rgba(39,36,29,.85);
+  }
+  .write-bar button:hover{transform:translateY(-1px);}
+  .write-bar button:active{transform:translateY(1px);box-shadow:1px 1px 0 rgba(39,36,29,.85);}
+  .write-note{
+    text-align:center;font-size:12px;color:#8d8270;margin-top:7px;letter-spacing:.04em;
+  }
+  .write-note b{color:var(--bag-blue);}
+  .item.custom{
+    background:#FFF9E8;border-style:dashed;
+  }
+  .item.custom .zh::before{content:"✍️ ";font-size:12px;}
+  .item .rm{
+    position:absolute;top:-9px;right:-9px;width:22px;height:22px;
+    border-radius:50%;background:var(--ink);color:#fffdf6;
+    border:none;font-size:12px;font-weight:900;cursor:pointer;line-height:1;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .item .rm:hover{background:var(--bag-red);}
+  .item.flash{animation:flash .6s ease;}
+  @keyframes flash{
+    0%,100%{box-shadow:3px 3px 0 rgba(39,36,29,.7);}
+    40%{box-shadow:0 0 0 6px rgba(201,52,43,.45);transform:scale(1.1);}
+  }
+  .stall-board{
+    position:relative;margin-top:14px;border-radius:18px;
+    background:
+      radial-gradient(ellipse at 30% 20%, rgba(255,255,255,.5), transparent 60%),
+      #E2D5BB;
+    border:2px solid #c7b794;
+    padding:26px 14px 30px;
+    min-height:300px;
+    display:flex;flex-wrap:wrap;justify-content:center;align-content:flex-start;
+    gap:2px 6px;
+  }
+  .item{
+    --rot:0deg;
+    background:var(--tag);
+    border:1.8px solid var(--ink);border-radius:10px;
+    width:108px;padding:10px 6px 8px;margin:6px 2px;
+    text-align:center;cursor:grab;user-select:none;touch-action:none;
+    transform:rotate(var(--rot));
+    box-shadow:3px 3px 0 rgba(39,36,29,.7);
+    transition:transform .15s ease, box-shadow .15s ease, opacity .2s ease;
+    position:relative;
+  }
+  .item::after{ /* 標籤打孔 */
+    content:"";position:absolute;top:5px;left:50%;transform:translateX(-50%);
+    width:7px;height:7px;border-radius:50%;
+    background:var(--paper);border:1.5px solid var(--ink);
+  }
+  .item:hover{transform:rotate(0deg) scale(1.07);box-shadow:5px 6px 0 rgba(39,36,29,.75);z-index:5;}
+  .item:active{cursor:grabbing;}
+  .item .emo{font-size:33px;line-height:1.25;display:block;margin-top:4px;}
+  .item .zh{font-weight:700;font-size:14.5px;display:block;margin-top:3px;}
+  .item .de{font-size:10.5px;color:#857a62;display:block;letter-spacing:.02em;margin-top:1px;}
+  .item.picked{opacity:.32;filter:grayscale(.6);transform:rotate(var(--rot)) scale(.94);}
+  .item.picked:hover{transform:rotate(var(--rot)) scale(.96);}
+
+  /* 拖曳中的影子卡 */
+  .ghost{
+    position:fixed;z-index:99;pointer-events:none;
+    width:96px;padding:8px 6px;text-align:center;
+    background:var(--tag);border:2px solid var(--ink);border-radius:10px;
+    box-shadow:0 12px 22px rgba(0,0,0,.3);
+    transform:translate(-50%,-60%) rotate(-4deg) scale(1.05);
+  }
+  .ghost .emo{font-size:30px;display:block;}
+  .ghost .zh{font-weight:700;font-size:13px;}
+
+  footer{
+    margin-top:36px;text-align:center;font-size:12.5px;color:#8d8270;line-height:1.8;
+  }
+  @media (max-width:560px){
+    .item{width:30.5%;min-width:96px;}
+    .basket-hint{font-size:12.5px;}
+    .basket-hint .big{font-size:16px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important;}
+  }
+</style>
+</head>
+<body>
+<div class="frame">
+
+  <header>
+    <div class="awning" aria-hidden="true"></div>
+    <span class="eyebrow">FÜR TAIWANER IN DEUTSCHLAND</span>
+    <h1>德國超市<span class="x">×</span>台灣胃</h1>
+    <p class="sub">想家的時候,就去 REWE、EDEKA、Lidl 逛一圈。<br>
+    把下面攤位上的食材<b>拖進茄芷袋</b>(或點一下也行),看看今晚能煮出哪道台灣味。</p>
+  </header>
+
+  <!-- 茄芷袋 -->
+  <div class="basket-zone" id="basketZone" aria-label="菜籃">
+    <svg class="basket-svg" viewBox="0 0 560 330" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <pattern id="stripes" width="54" height="330" patternUnits="userSpaceOnUse">
+          <rect width="18" height="330" fill="#C9342B"/>
+          <rect x="18" width="18" height="330" fill="#FCF8EE"/>
+          <rect x="36" width="9" height="330" fill="#1F4F8F"/>
+          <rect x="45" width="9" height="330" fill="#2E7D4F"/>
+        </pattern>
+      </defs>
+      <!-- 提把 -->
+      <path d="M150 95 C150 18 250 18 250 95" fill="none" stroke="#27241D" stroke-width="16" stroke-linecap="round"/>
+      <path d="M310 95 C310 18 410 18 410 95" fill="none" stroke="#27241D" stroke-width="16" stroke-linecap="round"/>
+      <path d="M150 95 C150 26 250 26 250 95" fill="none" stroke="#C9342B" stroke-width="8" stroke-linecap="round"/>
+      <path d="M310 95 C310 26 410 26 410 95" fill="none" stroke="#C9342B" stroke-width="8" stroke-linecap="round"/>
+      <!-- 袋身 -->
+      <path d="M60 100 L500 100 L470 300 Q280 322 90 300 Z" fill="url(#stripes)" stroke="#27241D" stroke-width="5"/>
+      <!-- 袋口陰影 -->
+      <path d="M60 100 L500 100 L494 130 Q280 148 66 130 Z" fill="rgba(0,0,0,.28)"/>
+      <!-- 網紋 -->
+      <path d="M60 100 L500 100 L470 300 Q280 322 90 300 Z" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="1.2"
+        stroke-dasharray="3 5"/>
+    </svg>
+    <div class="basket-hint" id="basketHint">
+      <span class="big">茄芷袋還空空的</span>
+      把食材拖進來,湊齊一道菜!
+    </div>
+    <div class="chips" id="chips"></div>
+  </div>
+  <div class="basket-actions">
+    <button class="clear-btn" id="clearBtn">倒掉重買 ↺</button>
+  </div>
+
+  <!-- 食譜結果 -->
+  <section class="results" id="results" aria-live="polite">
+    <div class="results-head"><span>今晚開煮</span></div>
+    <div id="resultsBody">
+      <p class="empty-note">袋子裡有什麼,這裡就會浮出能做的台灣菜。<br>先去下面的攤位挑幾樣吧。</p>
+    </div>
+  </section>
+
+  <!-- 食材攤位 -->
+  <section class="stall">
+    <div class="stall-head">
+      <h2>今日攤位</h2>
+      <small>德國超市都買得到 ↓ 拖上去</small>
+    </div>
+    <div class="write-bar">
+      <input id="writeInput" type="text" maxlength="20" placeholder="攤位上沒有?手寫食材名…(中文或德文)">
+      <button id="writeBtn">上架 ✍️</button>
+    </div>
+    <p class="write-note">偷偷說:手寫某些食材會解鎖<b>隱藏菜色</b>,例如「蚵仔」「蝦仁」「糯米」「韭菜」…</p>
+    <div class="stall-board" id="stall"></div>
+  </section>
+
+  <footer>
+    小撇步:亞超太遠的日子,Spitzkohl 就是你的高麗菜,Basilikum 就是你的九層塔。<br>
+    Guten Appetit,呷飽未?
+  </footer>
+</div>
+
+<script>
+/* ───────── 資料 ───────── */
+const INGREDIENTS = [
+  {id:'pork',    emo:'🥩', zh:'五花肉', de:'Schweinebauch'},
+  {id:'chicken', emo:'🍗', zh:'雞腿',   de:'Hähnchenschenkel'},
+  {id:'beef',    emo:'🐂', zh:'牛肋條', de:'Rinderbeinscheibe'},
+  {id:'egg',     emo:'🥚', zh:'雞蛋',   de:'Eier'},
+  {id:'tofu',    emo:'⬜', zh:'豆腐',   de:'Tofu (Bio-Regal)'},
+  {id:'rice',    emo:'🍚', zh:'米',     de:'Milchreis / Sushireis'},
+  {id:'flour',   emo:'🌾', zh:'麵粉',   de:'Mehl Type 405'},
+  {id:'noodle',  emo:'🍜', zh:'麵條',   de:'Mie-Nudeln / Spaghetti'},
+  {id:'tomato',  emo:'🍅', zh:'番茄',   de:'Tomaten'},
+  {id:'cabbage', emo:'🥬', zh:'尖頭高麗菜', de:'Spitzkohl'},
+  {id:'onion',   emo:'🧅', zh:'洋蔥',   de:'Zwiebeln'},
+  {id:'scallion',emo:'🌿', zh:'青蔥',   de:'Frühlingszwiebeln'},
+  {id:'garlic',  emo:'🧄', zh:'大蒜',   de:'Knoblauch'},
+  {id:'ginger',  emo:'🫚', zh:'薑',     de:'Ingwer'},
+  {id:'basil',   emo:'🌱', zh:'羅勒',   de:'Basilikum (盆栽)'},
+  {id:'soy',     emo:'🫙', zh:'醬油',   de:'Sojasauce'},
+  {id:'sesame',  emo:'🛢️', zh:'麻油',  de:'Sesamöl'},
+  {id:'sweetpotato', emo:'🍠', zh:'地瓜', de:'Süßkartoffeln'},
+  {id:'mushroom',emo:'🍄', zh:'蘑菇',   de:'Champignons'},
+  {id:'mince',   emo:'🫕', zh:'豬絞肉', de:'Hackfleisch'},
+  {id:'cucumber',emo:'🥒', zh:'小黃瓜', de:'Salatgurke'},
+  {id:'radish',  emo:'🥕', zh:'白蘿蔔', de:'Rettich'},
+  {id:'corn',    emo:'🌽', zh:'玉米',   de:'Zuckermais (罐頭)'},
+];
+
+/* 手寫才會出現的隱藏食材 */
+const HIDDEN = [
+  {id:'oyster',    emo:'🦪', zh:'蚵仔',   de:'Austern / Muscheln'},
+  {id:'shrimp',    emo:'🦐', zh:'蝦仁',   de:'Garnelen'},
+  {id:'stickyrice',emo:'🍙', zh:'糯米',   de:'Klebreis (亞超)'},
+  {id:'chive',     emo:'🍃', zh:'韭菜',   de:'Schnittknoblauch'},
+  {id:'cilantro',  emo:'🌿', zh:'香菜',   de:'Koriander'},
+  {id:'starch',    emo:'🥣', zh:'太白粉', de:'Speisestärke'},
+];
+
+/* 別名對照:手寫的字 → 食材 id(中德文都認得) */
+const ALIASES = {
+  pork:['五花肉','五花','豬五花','schweinebauch'],
+  chicken:['雞腿','雞肉','雞','hähnchen','hähnchenschenkel','huhn'],
+  beef:['牛肉','牛肋條','牛腱','rind','rindfleisch'],
+  egg:['雞蛋','蛋','egg','ei','eier'],
+  tofu:['豆腐','tofu'],
+  rice:['米','白米','飯','reis','milchreis'],
+  flour:['麵粉','中筋麵粉','mehl'],
+  noodle:['麵條','麵','nudeln','麵線'],
+  tomato:['番茄','西紅柿','tomate','tomaten'],
+  cabbage:['高麗菜','尖頭高麗菜','spitzkohl','weißkohl','包菜'],
+  onion:['洋蔥','zwiebel','zwiebeln','紅蔥頭'],
+  scallion:['青蔥','蔥','蔥花','frühlingszwiebeln','lauchzwiebeln'],
+  garlic:['大蒜','蒜','蒜頭','knoblauch'],
+  ginger:['薑','老薑','嫩薑','ingwer'],
+  basil:['羅勒','九層塔','basilikum'],
+  soy:['醬油','sojasauce','sojasoße'],
+  sesame:['麻油','芝麻油','黑麻油','sesamöl'],
+  sweetpotato:['地瓜','番薯','süßkartoffel','süßkartoffeln'],
+  mushroom:['蘑菇','香菇','菇','champignons','pilze'],
+  mince:['豬絞肉','絞肉','hackfleisch','hack'],
+  cucumber:['小黃瓜','黃瓜','gurke','salatgurke'],
+  radish:['白蘿蔔','蘿蔔','菜頭','rettich'],
+  corn:['玉米','mais','zuckermais'],
+  oyster:['蚵仔','蚵','牡蠣','生蠔','auster','austern','muscheln'],
+  shrimp:['蝦仁','蝦','蝦子','garnelen','shrimps','krabben'],
+  stickyrice:['糯米','klebreis'],
+  chive:['韭菜','schnittknoblauch'],
+  cilantro:['香菜','芫荽','koriander'],
+  starch:['太白粉','玉米粉','地瓜粉','speisestärke','speisestarke'],
+};
+
+const RECIPES = [
+  {
+    name:'滷肉飯', emo:'🍛', de:'Geschmortes Schweinefleisch auf Reis',
+    need:['pork','soy','onion','egg','rice'],
+    tip:'買不到紅蔥頭?<b>洋蔥切細丁慢火煸到金黃</b>,香氣有八成像。Schweinebauch 請肉舖切帶皮的,滷起來才會ㄉㄨㄞ。',
+    steps:['五花肉切小丁,乾鍋煸出油', '下洋蔥丁炒到焦糖色', '加醬油、糖、一杯水(有五香粉更好),小火滷 40 分鐘', '水煮蛋丟進去一起滷,淋在熱飯上']
+  },
+  {
+    name:'三杯雞', emo:'🍳', de:'Drei-Tassen-Hähnchen',
+    need:['chicken','basil','garlic','ginger','sesame','soy'],
+    tip:'九層塔在德國幾乎絕跡,<b>超市盆栽 Basilikum</b> 是最接近的靈魂替身,起鍋前才下。米酒可用 trockener Sherry 代替。',
+    steps:['麻油小火爆香薑片到捲曲', '下蒜頭與剁塊雞腿,煎到表面金黃', '醬油、酒、糖各一份,中火收汁', '關火拌入一大把羅勒']
+  },
+  {
+    name:'番茄炒蛋', emo:'🍅', de:'Rührei mit Tomaten',
+    need:['tomato','egg','scallion'],
+    tip:'德國番茄偏硬偏酸,選 <b>Strauchtomaten(帶藤的)</b>最接近台灣味,加一小撮糖平衡酸度。',
+    steps:['蛋液加少許鹽,大火快炒到半熟盛起', '番茄切塊下鍋,炒軟出汁', '蛋回鍋,加糖少許、鹽調味', '撒蔥花起鍋,湯汁拌飯一流']
+  },
+  {
+    name:'蔥油餅', emo:'🫓', de:'Frühlingszwiebel-Fladen',
+    need:['flour','scallion'],
+    tip:'<b>Mehl Type 405</b> 就是中筋的好朋友。Frühlingszwiebeln 一年四季都有,蔥白蔥綠都別浪費。',
+    steps:['麵粉加溫熱水揉成軟麵糰,醒 30 分鐘', '擀平、抹油、鋪滿蔥花與鹽', '捲起盤成蝸牛狀再擀平', '平底鍋半煎半烙到兩面金黃酥脆']
+  },
+  {
+    name:'麻油雞湯', emo:'🍲', de:'Hähnchensuppe mit Sesamöl',
+    need:['chicken','ginger','sesame'],
+    tip:'柏林的冬天就是要這鍋。<b>麻油遇大火會苦</b>,全程小火;酒可用整瓶便宜白酒(trocken)取代米酒,煮滾揮發就不嗆。',
+    steps:['麻油小火煸老薑片到邊緣捲起', '雞腿塊下鍋翻炒到表面變色', '倒入酒與水(1:1),小火燉 30 分鐘', '鹽最後再加,配麵線就是天堂']
+  },
+  {
+    name:'蒜炒高麗菜', emo:'🥬', de:'Gebratener Spitzkohl',
+    need:['cabbage','garlic'],
+    tip:'旅德台灣人的共同發現:<b>Spitzkohl(尖頭高麗菜)</b>比圓的 Weißkohl 嫩非常多,口感最接近台灣高山高麗菜。',
+    steps:['高麗菜用手撕大片,梗葉分開', '蒜片冷油下鍋爆香', '先下梗大火快炒,再下葉', '沿鍋邊嗆少許水,加鹽,脆口起鍋']
+  },
+  {
+    name:'紅燒牛肉麵', emo:'🍜', de:'Rindfleisch-Nudelsuppe',
+    need:['beef','tomato','noodle','soy','ginger'],
+    tip:'肉舖的 <b>Rinderbeinscheibe(帶骨牛腱切片)</b>是隱藏版神食材,有筋有骨熬湯超香。豆瓣醬可先用 Sambal Oelek + 味噌頂著。',
+    steps:['牛肉汆燙去血水', '薑、番茄塊炒香,加醬油與辣醬', '加水淹過牛肉,小火燉 1.5–2 小時', '另鍋煮麵,組合,燙點青菜更完整']
+  },
+  {
+    name:'酸辣湯', emo:'🥣', de:'Sauer-scharfe Suppe',
+    need:['tofu','egg','mushroom'],
+    tip:'黑醋買不到就用 <b>Balsamico + 白醋 1:1</b>。蘑菇切絲代替木耳,口感意外合拍。勾芡用 Speisestärke。',
+    steps:['蘑菇、豆腐切絲,入高湯煮滾', '加醬油、白胡椒(大量!)、醋', '太白粉水勾芡到濃稠', '轉小火,蛋液繞圈淋入成蛋花']
+  },
+  {
+    name:'QQ地瓜球', emo:'🍡', de:'Süßkartoffel-Bällchen',
+    need:['sweetpotato','flour'],
+    tip:'正版要用樹薯粉(亞超的 Tapiokastärke);臨時起意用 <b>Speisestärke + 麵粉</b>也能騙過鄉愁。夜市味的關鍵是油炸時「壓」。',
+    steps:['地瓜蒸熟壓泥,趁熱拌入糖與粉', '揉成糰、搓小球', '中低溫油炸,浮起後用漏勺反覆輕壓', '壓到膨成空心圓球,金黃撈起']
+  },
+  {
+    name:'黃金蛋炒飯', emo:'🥘', de:'Gebratener Reis mit Ei',
+    need:['rice','egg','scallion'],
+    tip:'德國超市的 <b>Milchreis</b>(煮布丁用的圓米)其實就是蓬萊米體質,煮飯炒飯都比 Basmati 對味。隔夜飯更好炒。',
+    steps:['蛋液直接拌入冷飯,讓每粒米裹金衣', '熱鍋熱油,下飯大火翻炒撥散', '加鹽與少許醬油沿鍋邊嗆香', '起鍋前撒大量蔥花']
+  },
+  {
+    name:'古早味蛋餅', emo:'🥞', de:'Taiwanesischer Frühstücks-Wrap',
+    need:['flour','egg','scallion'],
+    tip:'麵糊裡偷加一匙 <b>Speisestärke</b> 餅皮會更Q。醬油膏買不到?醬油+糖小火煮稠就是了。',
+    steps:['麵粉+水+鹽+蔥花調成稀麵糊', '平底鍋小火煎成薄餅皮,先盛起', '打蛋下鍋,半熟時把餅皮蓋上去', '翻面、捲起、切段,淋自製醬油膏']
+  },
+  {
+    name:'鹹酥雞', emo:'🍿', de:'Taiwanesisches Popcorn-Hähnchen',
+    need:['chicken','garlic','basil','flour'],
+    tip:'地瓜粉用 <b>Speisestärke 混麵粉 1:1</b> 模擬,裹粉後靜置 5 分鐘「反潮」才不掉粉。怕油炸就進氣炸鍋。',
+    steps:['雞腿切塊,用醬油、蒜泥、白胡椒醃 30 分鐘', '裹粉,靜置到表面微濕', '中溫炸熟撈起,轉高溫回炸 30 秒搶酥', '羅勒下油鍋炸 5 秒,一起撒上胡椒鹽']
+  },
+  {
+    name:'台式肉燥麵', emo:'🍝', de:'Nudeln mit Fleischsauce',
+    need:['mince','onion','soy','noodle'],
+    tip:'選 <b>gemischtes Hackfleisch(豬牛混合)</b>比純豬香。洋蔥丁煸到深褐色,就是紅蔥酥的德國替身。',
+    steps:['洋蔥丁慢火煸到焦糖色', '下絞肉炒散,炒到微微焦香', '加醬油、糖、白胡椒與一碗水,滷 20 分鐘', '澆在煮好的麵上,燙個青菜更完整']
+  },
+  {
+    name:'家常麻婆豆腐', emo:'🌶️', de:'Mapo-Tofu nach Hausart',
+    need:['tofu','mince','garlic','soy'],
+    tip:'豆瓣醬可用 <b>Sambal Oelek + 一匙味噌</b>調出八分像。德國盒裝豆腐偏硬,先泡熱鹽水 10 分鐘會嫩很多。',
+    steps:['豆腐切丁,熱鹽水泡著備用', '爆香蒜末,下絞肉炒到出油', '加辣醬、醬油與半碗水煮滾', '豆腐輕推入鍋燒 5 分鐘,勾薄芡起鍋']
+  },
+  {
+    name:'涼拌小黃瓜', emo:'🥒', de:'Gurkensalat taiwanesisch',
+    need:['cucumber','garlic'],
+    tip:'德國 <b>Salatgurke</b> 水分多,刀背拍裂、加鹽抓醃 15 分鐘殺水是關鍵,再用糖、醋、蒜末、幾滴麻油拌。',
+    steps:['小黃瓜拍裂切段,加鹽抓醃 15 分鐘', '倒掉出水,擠乾', '加蒜末、糖、醋(白醋或 Apfelessig)拌勻', '冰箱冰 30 分鐘更脆更入味']
+  },
+  {
+    name:'蘿蔔玉米雞湯', emo:'🍵', de:'Hühnersuppe mit Rettich & Mais',
+    need:['radish','corn','chicken'],
+    tip:'<b>Rettich</b> 比台灣菜頭嗆一點,切塊先汆燙 2 分鐘就溫和了。玉米用罐頭 Zuckermais 或整根 Maiskolben 都行。',
+    steps:['雞腿塊汆燙去血水', '白蘿蔔切塊、玉米切段一起入鍋', '加水淹過,小火燉 40 分鐘', '只加鹽調味,喝的就是清甜原味']
+  },
+  {
+    name:'蚵仔煎', emo:'🦪', de:'Austern-Omelett',
+    need:['oyster','egg','starch'],
+    tip:'魚攤的 Austern 太貴?<b>冷凍 Muscheln(淡菜)</b>也能解饞。粉漿是靈魂:Speisestärke 加水 1:2,煎出來才會半透明QQ。',
+    steps:['粉漿調好(太白粉:水 = 1:2,加點鹽)', '熱鍋下蚵仔略煎,倒入粉漿', '粉漿半凝固時打蛋壓散,鋪上青菜', '翻面煎到邊緣焦脆,淋甜辣醬(番茄醬+糖+醬油可仿)']
+  },
+  {
+    name:'滑蛋蝦仁', emo:'🦐', de:'Garnelen mit seidigem Ei',
+    need:['shrimp','egg','scallion'],
+    tip:'<b>冷凍 Garnelen</b> 解凍後用鹽抓洗再沖水,口感會回脆。蛋液加一匙太白粉水,就是港台餐廳的滑嫩秘密。',
+    steps:['蝦仁鹽抓洗、擦乾,快炒八分熟盛起', '蛋液加鹽與一匙太白粉水打勻', '熱鍋多油,倒蛋液大火推炒', '蛋半熟時蝦仁回鍋,撒蔥花立刻離火']
+  },
+  {
+    name:'香菇油飯', emo:'🍙', de:'Klebreis mit Pilzen',
+    need:['stickyrice','mushroom','sesame','soy'],
+    tip:'糯米要去亞超找 <b>Klebreis</b>;真的買不到,用 Milchreis 少放水煮也能騙過七成鄉愁。',
+    steps:['糯米泡水 2 小時瀝乾', '麻油爆香薑絲與蘑菇片', '下糯米翻炒,加醬油與適量水', '小火燜 20 分鐘(或入電鍋),拌勻再燜 10 分鐘']
+  },
+  {
+    name:'韭菜盒子', emo:'🥟', de:'Schnittknoblauch-Taschen',
+    need:['chive','flour','egg'],
+    tip:'德超盆栽區的 <b>Schnittknoblauch</b> 就是韭菜的近親,土耳其超市(土超)有時也有整把的。',
+    steps:['燙麵:麵粉沖熱水拌勻,揉成軟糰醒 30 分鐘', '炒碎蛋,放涼後拌韭菜末、鹽、麻油', '麵糰分劑擀圓,包餡捏成半月形', '平底鍋少油,半煎半烙到兩面金黃']
+  },
+];
+
+/* ───────── 狀態 ───────── */
+const basket = new Set();
+const stall = document.getElementById('stall');
+const chips = document.getElementById('chips');
+const hint = document.getElementById('basketHint');
+const zone = document.getElementById('basketZone');
+const clearBtn = document.getElementById('clearBtn');
+const resultsBody = document.getElementById('resultsBody');
+const byId = Object.fromEntries([...INGREDIENTS, ...HIDDEN].map(i=>[i.id,i]));
+
+/* ───────── 攤位:不規則擺放 ───────── */
+let cardCount = 0;
+function addCard(ing, isCustom){
+  const el = document.createElement('div');
+  el.className = 'item' + (isCustom ? ' custom' : '');
+  el.id = 'item-'+ing.id;
+  const i = cardCount++;
+  const rot = (Math.sin(i*7.3)*7).toFixed(1);          // -7°~7° 偽隨機旋轉
+  const dy  = Math.round(Math.cos(i*3.1)*12);          // 上下錯落
+  el.style.setProperty('--rot', rot+'deg');
+  el.style.marginTop = (6+12+dy)+'px';
+  el.innerHTML = `<span class="emo">${ing.emo}</span>
+                  <span class="zh">${ing.zh}</span>
+                  <span class="de">${ing.de||'自己寫的'}</span>`;
+  if(isCustom){
+    const rm = document.createElement('button');
+    rm.className = 'rm'; rm.textContent = '✕'; rm.title = '下架這個食材';
+    rm.addEventListener('pointerdown', e=>e.stopPropagation());
+    rm.onclick = ()=>{ basket.delete(ing.id); delete byId[ing.id]; el.remove(); render(); };
+    el.appendChild(rm);
+  }
+  el.addEventListener('pointerdown', e=>startDrag(e, ing, el));
+  stall.appendChild(el);
+  return el;
+}
+INGREDIENTS.forEach(ing=>addCard(ing, false));
+
+/* ───────── 手寫上架 ───────── */
+const writeInput = document.getElementById('writeInput');
+const writeBtn = document.getElementById('writeBtn');
+let customN = 0;
+
+function findByAlias(text){
+  const t = text.toLowerCase().replace(/\s+/g,'');
+  for(const [id, names] of Object.entries(ALIASES)){
+    if(names.some(n => n.toLowerCase().replace(/\s+/g,'') === t)) return id;
+  }
+  // 也比對攤位上的正式名稱(德文模糊比對需至少 3 個字母)
+  const all = [...INGREDIENTS, ...HIDDEN];
+  const hit = all.find(i => i.zh === text || (t.length>=3 && i.de.toLowerCase().includes(t)));
+  return hit ? hit.id : null;
+}
+
+function handleWrite(){
+  const text = writeInput.value.trim();
+  if(!text) return;
+  writeInput.value = '';
+  const id = findByAlias(text);
+
+  if(id){
+    let card = document.getElementById('item-'+id);
+    if(!card){
+      // 是隱藏食材:上架到攤位
+      const hiddenIng = HIDDEN.find(h=>h.id===id);
+      card = addCard(hiddenIng, true);
+    }
+    basket.add(id);
+    render();
+    card.classList.remove('flash'); void card.offsetWidth;
+    card.classList.add('flash');
+    card.scrollIntoView({behavior:'smooth', block:'nearest'});
+  }else{
+    // 完全自訂的食材:一樣上架+入袋,但不參與配對
+    const ing = {id:'custom-'+(customN++), emo:'📝', zh:text, de:''};
+    byId[ing.id] = ing;
+    const card = addCard(ing, true);
+    basket.add(ing.id);
+    render();
+    card.classList.add('flash');
+  }
+}
+writeBtn.onclick = handleWrite;
+writeInput.addEventListener('keydown', e=>{ if(e.key==='Enter') handleWrite(); });
+
+/* ───────── 拖曳(pointer events,手機電腦通用) ───────── */
+let drag = null;
+function startDrag(e, ing, el){
+  if(basket.has(ing.id)){ toggle(ing.id); return; }
+  e.preventDefault();
+  drag = {ing, el, moved:false, x:e.clientX, y:e.clientY, ghost:null};
+  window.addEventListener('pointermove', onMove);
+  window.addEventListener('pointerup', onUp, {once:true});
+}
+function onMove(e){
+  if(!drag) return;
+  if(!drag.moved && Math.hypot(e.clientX-drag.x, e.clientY-drag.y) > 6){
+    drag.moved = true;
+    const g = document.createElement('div');
+    g.className = 'ghost';
+    g.innerHTML = `<span class="emo">${drag.ing.emo}</span><span class="zh">${drag.ing.zh}</span>`;
+    document.body.appendChild(g);
+    drag.ghost = g;
+  }
+  if(drag.ghost){
+    drag.ghost.style.left = e.clientX+'px';
+    drag.ghost.style.top  = e.clientY+'px';
+    const r = zone.getBoundingClientRect();
+    const over = e.clientX>r.left && e.clientX<r.right && e.clientY>r.top && e.clientY<r.bottom;
+    zone.classList.toggle('hot', over);
+  }
+}
+function onUp(e){
+  window.removeEventListener('pointermove', onMove);
+  if(!drag) return;
+  const {ing, ghost, moved} = drag;
+  if(ghost) ghost.remove();
+  const r = zone.getBoundingClientRect();
+  const over = e.clientX>r.left && e.clientX<r.right && e.clientY>r.top && e.clientY<r.bottom;
+  zone.classList.remove('hot');
+  if(!moved || over) toggle(ing.id);   // 點一下 = 直接加入;拖進袋裡也加入
+  drag = null;
+}
+function toggle(id){
+  basket.has(id) ? basket.delete(id) : basket.add(id);
+  render();
+}
+
+/* ───────── 畫面更新 ───────── */
+function render(){
+  // 攤位狀態(含手寫上架的卡片)
+  stall.querySelectorAll('.item').forEach(el=>{
+    el.classList.toggle('picked', basket.has(el.id.replace('item-','')));
+  });
+  // 袋內 chips
+  chips.innerHTML = '';
+  hint.style.display = basket.size ? 'none' : '';
+  clearBtn.classList.toggle('show', basket.size>0);
+  basket.forEach(id=>{
+    const b = document.createElement('button');
+    b.className = 'chip';
+    b.innerHTML = `${byId[id].emo} ${byId[id].zh} <span class="x">✕</span>`;
+    b.title = '從袋裡拿出來';
+    b.onclick = ()=>toggle(id);
+    chips.appendChild(b);
+  });
+  // 食譜配對
+  const done = [], almost = [];
+  RECIPES.forEach(r=>{
+    const missing = r.need.filter(n=>!basket.has(n));
+    if(missing.length===0) done.push(r);
+    else if(missing.length===1 && basket.size>0) almost.push({r, miss:missing[0]});
+  });
+  let html = '';
+  if(done.length){
+    html += '<div class="recipes">' + done.map(r=>`
+      <article class="recipe">
+        <h3>${r.emo} ${r.name}</h3>
+        <div class="de-name">${r.de}</div>
+        <div class="uses">${r.need.map(n=>`<i>${byId[n].emo} ${byId[n].zh}</i>`).join('')}</div>
+        <div class="tip">🇩🇪 採買訣竅:${r.tip}</div>
+        <ol class="steps">${r.steps.map(s=>`<li>${s}</li>`).join('')}</ol>
+      </article>`).join('') + '</div>';
+  }
+  if(almost.length){
+    html += `<div class="almost-wrap">
+      <div class="almost-title">── 只差一味就開鍋 ──</div>
+      <div class="almost-row">` +
+      almost.map(a=>`<div class="almost">${a.r.emo} ${a.r.name}:再去拿 <b>${byId[a.miss].emo} ${byId[a.miss].zh}</b></div>`).join('') +
+      `</div></div>`;
+  }
+  if(!html){
+    html = basket.size
+      ? '<p class="empty-note">這個組合還湊不成一道菜,再多拖幾樣試試!<br>提示:番茄+雞蛋+青蔥,是最快的鄉愁解藥。</p>'
+      : '<p class="empty-note">袋子裡有什麼,這裡就會浮出能做的台灣菜。<br>先去下面的攤位挑幾樣吧。</p>';
+  }
+  resultsBody.innerHTML = html;
+}
+clearBtn.onclick = ()=>{ basket.clear(); render(); };
+render();
+</script>
+</body>
+</html>
